@@ -3,8 +3,8 @@
 //   https://aviationweather.gov/adds/dataserver_current/current/ for departure airport ICAO, //
 //   arriving airport ICAO and radius zone near flight path with follow TAFS and METAR data   //
 //   .csv files parsing                                                                       //
-//                                                             Barracuda_marina, 16.05.2021   //
-//                                                                            ver. 0.9 beta   //
+//                                                             Barracuda_marina, 23.05.2021   //
+//                                                                            ver. 0.99 beta  //
 // ========================================================================================== //
 
 #define CURL_STATICLIB
