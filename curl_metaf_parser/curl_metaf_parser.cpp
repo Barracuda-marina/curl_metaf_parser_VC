@@ -38,16 +38,19 @@ char ap_arriving[5] = "UKBB";
 char search_radius[3] = "50";
 char hours_before_now[3] = "2";
 
-//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
+
 size_t write_data(char* ptr, size_t size, size_t nmemb, FILE* data)
 {
     return fwrite(ptr, size, nmemb, data);
 }
-//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
+
+// Test function for flightpath data input:
 
 int test_input(void);
 
-//---------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------------
 
 string errorMessage(ReportError error) {
     switch (error) {
@@ -316,8 +319,7 @@ class MyVisitor : public Visitor<string> {
 int main(void)
 {
 
-    // Открываем файлы для заголовка и тела данных METAR и TAF и определяем другие переменные
-
+    // Define and open local files for METAR and TAF ------------------------------------------------ 
 
     const string header_filename_metars = "files/metars.txt";
     const string body_filename_metars = "files/metars.csv";
@@ -340,7 +342,7 @@ int main(void)
     if (body_file_tafs == NULL)
         return -1;
 
-    // Query data input
+    // Query data input ---------------------------------------------------------------------------
 
     system("cls");
     std::cout << "\nWelcome Sir." << std::endl;
@@ -356,12 +358,11 @@ int main(void)
     std::cout << "\nReceiving . . . " << std::endl;
 
 
-    // Module to receive data files from AWC ======================================================================================
+    // Module to receive data files from AWC =============================================================================
 
     CURL* curl_handle = curl_easy_init();
     if (curl_handle)
     {
-
         // METARS part -------------------------------------------------------------------------------------------------------------
 
         char url_metars_01[] = "https://aviationweather.gov/adds/dataserver_current/httpparam?dataSource=metars&requestType=retrieve&format=csv&flightPath=";
