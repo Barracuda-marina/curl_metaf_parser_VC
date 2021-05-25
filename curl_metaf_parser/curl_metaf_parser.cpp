@@ -1,11 +1,12 @@
-﻿// ========================================================================================== //
+﻿////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                            //
 //   Program for METAR and TAF database receiving from Aviation Weather Center                //
 //   https://aviationweather.gov/adds/dataserver_current/current/ for departure airport ICAO, //
 //   arriving airport ICAO and radius zone near flight path with follow TAFS and METAR data   //
 //   .csv files parsing                                                                       //
-//                                                             Barracuda_marina, 23.05.2021   //
-//                                                                            ver. 0.99 beta  //
-// ========================================================================================== //
+//                                                             Barracuda_marina, 25.05.2021   //
+//                                                                           ver. 0.999a beta  //
+////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define CURL_STATICLIB
 
@@ -319,12 +320,13 @@ class MyVisitor : public Visitor<string> {
 int main(void)
 {
 
-    // Define and open local files for METAR and TAF ------------------------------------------------ 
+    // Define and open local files for METAR and TAF ------------------------------------------------
 
     const string header_filename_metars = "files/metars.txt";
     const string body_filename_metars = "files/metars.csv";
     const string header_filename_tafs = "files/tafs.txt";
     const string body_filename_tafs = "files/tafs.csv";
+    const string filename_metafs = "files/metafs.txt";
 
     FILE* header_file_metars = fopen(header_filename_metars.c_str(), "w");
     if (header_file_metars == NULL)
@@ -349,13 +351,21 @@ int main(void)
     std::cout << "\nPlease input flight path data or press <Ctrl+C> to exit: " << std::endl;
     std::cout << "\nDeparture AP ICAO: ";
     std::cin >> ap_departure;
-    std::cout << "\nArriving AP ICAO: ";
+    std::cout << "Arriving AP ICAO: ";
     std::cin >> ap_arriving;
-    std::cout << "\nRadius search (nm): ";
+    std::cout << "Radius search (nm): ";
     std::cin >> search_radius;
-    std::cout << "\nHours before now: ";
+    std::cout << "Hours before now: ";
     std::cin >> hours_before_now;
-    std::cout << "\nReceiving . . . " << std::endl;
+
+    // Indicator bar ------------------------------------------------------------------------------
+
+    std::cout << "\nReceiving  data  ";
+    for (int ccc = 0; ccc < 75; ccc++) {
+        for (int cccc = 0; cccc < 7000000; cccc++);
+        std::cout << "|";
+    }
+    std::cout << std::endl;
 
 
     // Module to receive data files from AWC =============================================================================
@@ -425,108 +435,189 @@ int main(void)
     fclose(header_file_tafs);
     fclose(body_file_tafs);
 
-    cout << "\nDone!" << "\nFlightpath weather data were stored in subfolder </files> in that files: " << body_filename_metars << ", " << body_filename_tafs << endl;
+    cout << "Done!" << "\nFlightpath weather data were stored in subfolder </files> in the files: " << body_filename_metars << ", " << body_filename_tafs << endl;
+    cout << endl;
     system("pause");
+    cout << "\nSo ... \n";
 
 
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!  N E E D    T O    R E C O D E  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // !           !            !                                 !                   !                      !
-
-    // === METAR section =====================================================================================
+ // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!  DATA extracting from file receiving  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+ 
+ // === METAR section =====================================================================================
 
     int i = 0;
-    char str_csv_metar1[8000];
-    char str_txt_metar1[220];
-    string str_txt_metar;
+    char str_csv_metar1[50000];
+    char str_txt_metar1[300];
 
-    FILE* fp_csv_m1 = fopen("files/metars.csv", "r");   // Path has to be changed for release ver.
-    FILE* fp_txt_m1 = fopen("files/metaf.txt", "w");    // Path has to be changed for release ver.
+    FILE* fp_csv_m1 = fopen("files/metars.csv", "r");   // Path can to be changed for release ver.
+    FILE* fp_txt_m1 = fopen("files/metaf.txt", "w");    // Path can to be changed for release ver.
     if (fp_csv_m1 != NULL) {
         while ((str_csv_metar1[i] = getc(fp_csv_m1)) != EOF) i++;
         str_csv_metar1[i] = '\0';
     }
-    
- //   cout << str_csv_metar1;
+
+    //   cout << str_csv_metar1; // debug
+
+    //  ----- str_m - METARS string from file request -----
+
     string str_m = string(str_csv_metar1);
     int a;
 
-    stringstream ap_departure_tmp;
-    ap_departure_tmp  << "," << ap_departure << ",";
-    string ap_departure_tmpl = ap_departure_tmp.str();
-    string ap_departure_orig = ap_departure;
- 
-    i = str_m.find(ap_departure_tmpl);
- //   cout << i;
-    string beginStr_m = str_m.substr(0, i);
- //   cout << beginStr_m << endl;
-    i = beginStr_m.find(ap_departure_orig);
-    string endStr_m = str_m.substr(i, beginStr_m.length() - i);
-    cout << "METAR " << endStr_m << endl;
-    if (endStr_m.empty())
+    // METAR for departure airport ------------------------------------------------------------------------
+
+    stringstream ap_departure_metar_tmp;
+    ap_departure_metar_tmp << "," << ap_departure << ",";
+    string ap_departure_metar_tmpl = ap_departure_metar_tmp.str();
+    string ap_departure_metar_orig = ap_departure;
+
+    i = str_m.find(ap_departure_metar_tmpl);
+
+    //   cout << i; // debug
+
+    string beginStr_m_dep = str_m.substr(0, i);
+
+    //   cout << beginStr_m_dep << endl; // debug
+
+    i = beginStr_m_dep.find(ap_departure_metar_orig);
+    string endStr_m_dep = str_m.substr(i, beginStr_m_dep.length() - i);
+    cout << "METAR " << endStr_m_dep << endl;
+    if (endStr_m_dep.empty())
     {
         cout << "app" << endl;
     }
 
- // cout << str_txt_metar1 << endl;
-    fputs(endStr_m.c_str(), fp_txt_m1);
+    // cout << str_txt_metar1 << endl; // debug
+
+    fputs(endStr_m_dep.c_str(), fp_txt_m1);
+    fputs("\n", fp_txt_m1);
+
+    // METAR for arriving airport ------------------------------------------------------------------------
+
+    stringstream ap_arriving_metar_tmp;
+    ap_arriving_metar_tmp << "," << ap_arriving << ",";
+    string ap_arriving_metar_tmpl = ap_arriving_metar_tmp.str();
+    string ap_arriving_metar_orig = ap_arriving;
+
+    i = str_m.find(ap_arriving_metar_tmpl);
+
+    //   cout << i; // debug
+
+    string beginStr_m_arr = str_m.substr(0, i);
+
+    //   cout << beginStr_m_arr << endl; // debug
+
+    i = beginStr_m_arr.find(ap_arriving_metar_orig);
+    string endStr_m_arr = str_m.substr(i, beginStr_m_arr.length() - i);
+    cout << "METAR " << endStr_m_arr << endl;
+    if (endStr_m_arr.empty())
+    {
+        cout << "app" << endl;
+    }
+
+    // cout << str_txt_metar1 << endl; // debug
+
+    fputs(endStr_m_arr.c_str(), fp_txt_m1);
     fputs("\n", fp_txt_m1);
 
 
-    //== TAF section ========================================================================================
+//== TAF section ========================================================================================
 
     i = 0;
-    char str_csv_taf1[50000];
-    char str_txt_taf1[400];
-    string str_txt_taf;
-
-    FILE* fp_csv_t1 = fopen("files/tafs.csv", "r");  // Path has to be changed for release ver.
+    char str_csv_taf1[300000];
+    
+    FILE* fp_csv_t1 = fopen("files/tafs.csv", "r");  // Path can to be changed for release ver.
 
     if (fp_csv_t1 != NULL) {
         while ((str_csv_taf1[i] = getc(fp_csv_t1)) != EOF) i++;
         str_csv_taf1[i] = '\0';
     }
 
- //   cout << str_csv_taf1;
+    //   cout << str_csv_taf1; // debug
+
+    // ----- str_t - TAFS string from file after request  ------
+
     string str_t = string(str_csv_taf1);
- //   cout << str_t;
-    a = 0;
 
-    stringstream ap_arriving_tmp;
-    ap_arriving_tmp << "," << ap_arriving << ",";
-    string ap_arriving_tmpl = ap_arriving_tmp.str();
-    string ap_arriving_orig = ap_arriving;
+    // cout << str_t; // debug
+    // system("pause"); // debug
 
-/*  debug block
-    cout << ap_departure << " " << ap_departure_tmpl << " " << ap_departure_orig << endl;
-    cout << ap_arriving << " " << ap_arriving_tmpl << " " << ap_arriving_orig << endl;
-    system("pause");
-  end debug block
-*/
-
-    i = str_t.find(ap_departure_tmpl);
- //   cout << i;
-    string beginStr_t = str_t.substr(0, i);
- //   cout << beginStr_t << endl;
-    i = beginStr_t.find("TAF");
- //   cout << i;
-    string endStr_t = str_t.substr(i, beginStr_t.length() - i);
-    cout << endStr_t << endl;
-
-    fputs(endStr_t.c_str(), fp_txt_m1);
-    fputs("\n", fp_txt_m1);
     
-    system("pause");
+    // TAF for departure airport ------------------------------------------------------------------------
 
-    // !           !            !                                 !                   !                      !
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!  N E E D    T O    R E C O D E  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    stringstream ap_departure_taf_tmp;
+    ap_departure_taf_tmp << "," << ap_departure << ",";
+    string ap_departure_taf_tmpl = ap_departure_taf_tmp.str();
+    string ap_departure_taf_orig = ap_departure;
 
+    /*  debug block
+        cout << ap_departure << " " << ap_departure_taf_tmpl << " " << ap_departure_taf_orig << endl;
+        system("pause");
+        // end debug block
+    */
 
-    //== Parsing section =====================================================================================
+    i = str_t.find(ap_departure_taf_tmpl);
 
+    //   cout << i; // debug
 
-    cout << "\nParsing report: " << endStr_m << endl;
+    string beginStr_t_dep = str_t.substr(0, i);
 
-    const auto result1 = Parser::parse(endStr_m.c_str());
+    //   cout << beginStr_t_dep << endl; // debug
+
+    i = beginStr_t_dep.find(ap_departure_taf_orig);
+
+    //   cout << i; // debug
+
+    string endStr_t_dep = str_t.substr(i, beginStr_t_dep.length() - i);
+    cout << "TAF " << endStr_t_dep << endl;
+
+    fputs("TAF ", fp_txt_m1);
+    fputs(endStr_t_dep.c_str(), fp_txt_m1);
+    fputs("\n", fp_txt_m1);
+
+    // TAF for arriving airport ------------------------------------------------------------------------
+
+    stringstream ap_arriving_taf_tmp;
+    ap_arriving_taf_tmp << "," << ap_arriving << ",";
+    string ap_arriving_taf_tmpl = ap_arriving_taf_tmp.str();
+    string ap_arriving_taf_orig = ap_arriving;
+
+    /*  debug block
+        cout << ap_arriving << " " << ap_arriving_taf_tmpl << " " << ap_arriving_taf_orig << endl;
+        system("pause");
+        // end debug block
+    */
+
+    i = str_t.find(ap_arriving_taf_tmpl);
+
+    // cout << i; //debug
+    // system("pause");  //debug
+
+    string beginStr_t_arr = str_t.substr(0, i);
+
+    // cout << beginStr_t_arr << endl;  //debug 
+
+    i = beginStr_t_arr.find(ap_arriving_taf_orig); 
+
+    // cout << i;  //debug
+    // system("pause");  //debug
+
+    string endStr_t_arr = str_t.substr(i, beginStr_t_arr.length() - i);
+    cout << "TAF " << endStr_t_arr << endl;
+    
+    // system("pause");  //debug
+
+    fputs("TAF ", fp_txt_m1);
+    fputs(endStr_t_arr.c_str(), fp_txt_m1);
+    fputs("\n", fp_txt_m1);
+
+    system("pause"); //debug
+
+ //== Parsing section =====================================================================================
+
+    // Departure airport METAR report --------------------------------------------------------------------
+
+    cout << "\nParsing report: " << endStr_m_dep << endl;
+    const auto result1 = Parser::parse(endStr_m_dep.c_str());
     cout << "Parse error: ";
     cout << errorMessage(result1.reportMetadata.error) << "\n";
     cout << "Detected report type: ";
@@ -538,8 +629,10 @@ int main(void)
     }
     system("pause");
 
-    cout << "\nParsing report: " << endStr_t.c_str() << "\n";
-    const auto result2 = Parser::parse(endStr_t.c_str());
+    // Departure airport TAF report --------------------------------------------------------------------
+
+    cout << "\nParsing report: " << endStr_t_dep.c_str() << "\n";
+    const auto result2 = Parser::parse(endStr_t_dep.c_str());
     cout << "Parse error: ";
     cout << errorMessage(result2.reportMetadata.error) << "\n";
     cout << "Detected report type: ";
@@ -551,28 +644,47 @@ int main(void)
     }
     system("pause");
 
+    // Arriving airport METAR report --------------------------------------------------------------------
+
+    cout << "\nParsing report: " << endStr_m_arr.c_str() << "\n";
+    const auto result3 = Parser::parse(endStr_m_arr.c_str());
+    cout << "Parse error: ";
+    cout << errorMessage(result3.reportMetadata.error) << "\n";
+    cout << "Detected report type: ";
+    cout << reportTypeMessage(result3.reportMetadata.type) << "\n";
+    cout << result3.groups.size() << " groups parsed\n";
+    MyVisitor visitor3;
+    for (const auto groupInfo : result3.groups) {
+        cout << visitor3.visit(groupInfo) << "\n";
+    }
+    system("pause");
+
+    // Arriving airport TAF report --------------------------------------------------------------------
+
+    cout << "\nParsing report: " << endStr_t_arr.c_str() << "\n";
+    const auto result4 = Parser::parse(endStr_t_arr.c_str());
+    cout << "Parse error: ";
+    cout << errorMessage(result4.reportMetadata.error) << "\n";
+    cout << "Detected report type: ";
+    cout << reportTypeMessage(result4.reportMetadata.type) << "\n";
+    cout << result4.groups.size() << " groups parsed\n";
+    MyVisitor visitor4;
+    for (const auto groupInfo : result4.groups) {
+        cout << visitor4.visit(groupInfo) << "\n";
+    }
+    system("pause");
+
+
     fclose(fp_txt_m1);
     fclose(fp_csv_m1);
     fclose(fp_csv_t1);
-    cout << "\nBye, Cap!\n";
+
+    cout << "\nMERARS and TAFS for departure and arriving airports were stored in the file: " << filename_metafs << endl;
+    cout << "\nBye, Cap!\n\n";
+    system("pause");
     return 0;
 }
 
-// ===================================================================================================
-// |                               MAIN function end                                                 |
-// ===================================================================================================
-
-
-// Test function for flightpath data input -----------------------------------------------------------
-
-int test_input(void)
-{
-    cout << ap_departure << endl;
-    cout << ap_arriving << endl;
-    cout << search_radius << endl;
-    cout << hours_before_now << endl;
-    return 0;
-}
 
 
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!//
