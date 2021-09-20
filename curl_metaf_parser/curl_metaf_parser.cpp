@@ -5,7 +5,7 @@
 //   arriving airport ICAO and radius zone near flight path with follow TAFS and METAR data   //
 //   .csv files parsing                                                                       //
 //                                                             Barracuda_marina, 25.05.2021   //
-//                                                                           ver. 0.999a beta  //
+//                                                                           ver. 0.999a beta //
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define CURL_STATICLIB
